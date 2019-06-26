@@ -1,0 +1,84 @@
+/*
+ * Copyright (C) 2016-2018 ActionTech.
+ * based on code by MyCATCopyrightHolder Copyright (c) 2013, OpenCloudDB/MyCAT.
+ * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher.
+ */
+package com.sharding.client.config.loader.xml;
+
+import com.sharding.client.config.model.FirewallConfig;
+import com.sharding.client.config.model.SystemConfig;
+import com.sharding.client.config.model.UserConfig;
+import com.sharding.client.config.util.ConfigException;
+import com.sharding.client.config.util.ConfigUtil;
+import com.sharding.client.util.ResourceUtil;
+import org.w3c.dom.Element;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author mycat
+ */
+
+public class XMLServerLoader {
+    private final SystemConfig system;
+    private final Map<String, UserConfig> users;
+    private final FirewallConfig firewall;
+
+    public XMLServerLoader(boolean isLowerCaseTableNames) {
+        this.system = new SystemConfig();
+        this.users = new HashMap<>();
+        this.firewall = new FirewallConfig();
+
+        this.load(new SystemConfigLoader(), isLowerCaseTableNames);
+        this.load(new UserConfigLoader(), isLowerCaseTableNames);
+        this.load(new FirewallConfigLoader(), isLowerCaseTableNames);
+    }
+
+    public SystemConfig getSystem() {
+        return system;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, UserConfig> getUsers() {
+        //return (Map<String, UserConfig>) (users.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(users));
+        return users;
+    }
+
+    public FirewallConfig getFirewall() {
+        return firewall;
+    }
+
+    public void load(Loader loader, boolean isLowerCaseTableNames) {
+        //read server.xml
+        InputStream dtd = null;
+        InputStream xml = null;
+        try {
+            dtd = ResourceUtil.getResourceAsStream("/server.dtd");
+            xml = ResourceUtil.getResourceAsStream("/server.xml");
+            Element root = ConfigUtil.getDocument(dtd, xml).getDocumentElement();
+            loader.load(root, this, isLowerCaseTableNames);
+        } catch (ConfigException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ConfigException(e);
+        } finally {
+            if (dtd != null) {
+                try {
+                    dtd.close();
+                } catch (IOException e) {
+                    //ignore error
+                }
+            }
+            if (xml != null) {
+                try {
+                    xml.close();
+                } catch (IOException e) {
+                    //ignore error
+                }
+            }
+        }
+    }
+}

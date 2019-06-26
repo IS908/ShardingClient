@@ -1,0 +1,66 @@
+/*
+ * Copyright (C) 2016-2018 ActionTech.
+ * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher.
+ */
+
+package com.sharding.client.config.loader.zkprocess.parse.entryparse.rule.xml;
+
+import com.sharding.client.alarm.AlarmCode;
+import com.sharding.client.config.loader.zkprocess.entity.Rules;
+import com.sharding.client.config.loader.zkprocess.parse.ParseXmlServiceInf;
+import com.sharding.client.config.loader.zkprocess.parse.XmlProcessBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLStreamException;
+import java.io.IOException;
+
+/**
+ * RuleParseXmlImpl
+ * <p>
+ * <p>
+ * author:liujun
+ * Created:2016/9/16
+ */
+public class RuleParseXmlImpl implements ParseXmlServiceInf<Rules> {
+
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RuleParseXmlImpl.class);
+
+    private XmlProcessBase parseBean;
+
+    public RuleParseXmlImpl(XmlProcessBase parseBase) {
+
+        this.parseBean = parseBase;
+        parseBean.addParseClass(Rules.class);
+    }
+
+    @Override
+    public Rules parseXmlToBean(String path) {
+
+        Rules schema = null;
+
+        try {
+            schema = (Rules) this.parseBean.baseParseXmlToBean(path);
+        } catch (JAXBException e) {
+            LOGGER.warn(AlarmCode.CORE_ZK_WARN +
+                    "RulesParseXmlImpl parseXmlToBean JAXBException", e);
+        } catch (XMLStreamException e) {
+            LOGGER.warn(AlarmCode.CORE_ZK_WARN +
+                    "RulesParseXmlImpl parseXmlToBean XMLStreamException", e);
+        }
+
+        return schema;
+    }
+
+    @Override
+    public void parseToXmlWrite(Rules data, String outputFile, String dataName) {
+        try {
+            this.parseBean.baseParseAndWriteToXml(data, outputFile, dataName);
+        } catch (IOException e) {
+            LOGGER.warn(AlarmCode.CORE_ZK_WARN + "RulesParseXmlImpl parseToXmlWrite IOException", e);
+        }
+    }
+
+}
